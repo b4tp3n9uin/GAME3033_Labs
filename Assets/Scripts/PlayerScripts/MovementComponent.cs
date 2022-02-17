@@ -32,6 +32,7 @@ public class MovementComponent : MonoBehaviour
     public readonly int isRunningHash = Animator.StringToHash("IsRunning");
     public readonly int isFiringHash = Animator.StringToHash("IsFiring");
     public readonly int isReloadingHash = Animator.StringToHash("IsReloading");
+    public readonly int VerticalAimHash = Animator.StringToHash("VerticalAim");
 
     private void Awake()
     {
@@ -42,7 +43,10 @@ public class MovementComponent : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        if (!GameManager.instance.CursorActive)
+        {
+            AppEvents.InvokeMouseCursorEnableEvent(false);
+        }
     }
 
     // Update is called once per frame
@@ -52,18 +56,36 @@ public class MovementComponent : MonoBehaviour
         followTransform.transform.rotation *= Quaternion.AngleAxis(lookInput.x * aimSensitivity, Vector3.up);
 
         followTransform.transform.rotation *= Quaternion.AngleAxis(lookInput.y * aimSensitivity, Vector3.left);
-
+        
         var angles = followTransform.transform.localEulerAngles;
         angles.z = 0;
 
         var angle = followTransform.transform.localEulerAngles.x;
+        float min = -60;
+        float max = 70.0f;
+        float range = max - min;
+        float offsetToZero = 0 - min;
+        float aimAngle = followTransform.transform.localEulerAngles.x;
+        aimAngle = (aimAngle > 180) ? aimAngle - 360 : aimAngle;
+        float val = (aimAngle + offsetToZero) / (range);
+        //print(val);
+        playerAnimator.SetFloat(VerticalAimHash, val); 
 
+        //if (angle > 180 && angle < min)
+        //{
+        //    angles.x = min;
+        //}
+
+        //else if (angle < 180 && angle > max)
+        //{
+        //    angles.x = max;
+        //}
 
         if (angle > 180 && angle < 300)
         {
             angles.x = 300;
         }
-        else if(angle < 180 && angle > 70)
+        else if (angle < 180 && angle > 70)
         {
             angles.x = 70;
         }
@@ -101,6 +123,9 @@ public class MovementComponent : MonoBehaviour
 
     public void OnJump(InputValue value)
     {
+        if (playerController.isJumping)
+        { return; }
+
         playerController.isJumping = value.isPressed;               
         rigidbody.AddForce((transform.up + moveDirection) * jumpForce, ForceMode.Impulse);
         playerAnimator.SetBool(isJumpingHash, playerController.isJumping);
