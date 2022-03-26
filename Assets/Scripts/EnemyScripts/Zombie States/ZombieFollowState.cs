@@ -10,7 +10,7 @@ public class ZombieFollowState : ZombieStates
 
     public ZombieFollowState(GameObject _followTarget, ZombieComponent zombie, ZombieStateMachine stateMachine) : base(zombie, stateMachine)
     {
-        followTarget = followTarget;
+        followTarget = _followTarget;
         updateInterval = 2;
 
     }
@@ -36,7 +36,7 @@ public class ZombieFollowState : ZombieStates
 
         float distanceBetween = Vector3.Distance(ownerZombie.transform.position, followTarget.transform.position);
 
-        if (distanceBetween > stoppingDistance)
+        if (distanceBetween < stoppingDistance)
         {
             // Change State
             stateMachine.ChangeState(ZombieStateType.Attacking);
